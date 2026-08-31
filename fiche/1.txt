@@ -50,7 +50,8 @@ python
 EXTENSIONS_VIDEO = {'.mp4', '.mkv', '.avi', '.mov', '.webm'}
 Si un dossier ne contient aucun fichier vidéo → erreur et arrêt
 
-Si un dossier contient des fichiers non-vidéo → on ignore (on ne filtre QUE les vidéos)
+Si un dossier contient des fichiers non-vidéo → on ignore (on ne filtre QUE les vidéos) # je modifie ici on est très strict si ya des trucs on signale
+et on arrête
 
 5. Vérification du nombre de fichiers
 Compter les fichiers vidéo dans video/ (liste triée)
