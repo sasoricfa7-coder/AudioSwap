@@ -1,0 +1,189 @@
+Principe fondateur d'AudioSwap
+Avant toute action, le script vérifie TOUT. Si une anomalie est détectée, le script affiche un message clair et s'arrête immédiatement, sans rien modifier.
+
+Le script ne commence à traiter que si TOUTES les conditions sont réunies.
+
+Vérifications initiales exhaustives
+Voici la liste complète de ce qui est vérifié avant le moindre traitement :
+
+1. Environnement système
+ffmpeg est installé et accessible
+
+ffprobe est installé et accessible
+
+2. Structure des dossiers
+Le dossier video/ existe
+
+Le dossier audio/ existe
+
+3. Contenu des dossiers
+video/ contient au moins un fichier vidéo valide
+
+audio/ contient au moins un fichier vidéo valide
+
+Tous les fichiers dans video/ sont des vidéos valides (extension autorisée)
+
+Tous les fichiers dans audio/ sont des vidéos valides (extension autorisée)
+
+4. Appariement
+Le nombre de fichiers dans video/ est strictement égal au nombre de fichiers dans audio/
+
+5. Durées
+La durée de video[0] est strictement égale à la durée de audio[0]
+
+La durée de video[1] est strictement égale à la durée de audio[1]
+
+...
+
+La durée de video[N-1] est strictement égale à la durée de audio[N-1]
+
+6. Droits d'écriture
+Le dossier produits_finaux/ peut être créé (si inexistant)
+
+On peut écrire dans produits_finaux/ (si existant)
+
+L'espace disque disponible est suffisant (optionnel, mais ambitieux)
+
+Ordre des vérifications (logique)
+text
+1. Vérifier FFmpeg et FFprobe
+   → Si manquant → message + arrêt
+
+2. Vérifier l'existence des dossiers
+   → Si manquant → message + arrêt
+
+3. Vérifier que les dossiers contiennent des fichiers vidéo valides
+   → Si un dossier est vide → message + arrêt
+   → Si un fichier a une extension non supportée → message + arrêt
+
+4. Vérifier l'égalité du nombre de fichiers
+   → Si différent → message + arrêt
+
+5. Vérifier l'égalité stricte des durées (pour CHAQUE paire)
+   → Si une paire a des durées différentes → message avec le nom des fichiers + arrêt
+
+6. Vérifier les droits d'écriture
+   → Si problème → message + arrêt
+
+7. Si TOUT est OK :
+   → Afficher un résumé : "✅ Toutes les vérifications sont passées. X paires à traiter."
+   → Démarrer le traitement
+Exemples de messages d'erreur (arrêt immédiat)
+Étape	Problème	Message
+1	FFmpeg manquant	❌ ERREUR : FFmpeg n'est pas installé ou inaccessible. Installe FFmpeg et réessaie.
+1	FFprobe manquant	❌ ERREUR : FFprobe n'est pas installé ou inaccessible. Installe FFmpeg (qui contient ffprobe) et réessaie.
+2	Dossier video/ manquant	❌ ERREUR : Le dossier "video/" est introuvable. Crée-le et place tes fichiers vidéo JA dedans.
+2	Dossier audio/ manquant	❌ ERREUR : Le dossier "audio/" est introuvable. Crée-le et place tes fichiers vidéo EN dedans.
+3	Dossier video/ vide	❌ ERREUR : Le dossier "video/" est vide. Ajoute au moins un fichier vidéo.
+3	Fichier non supporté	❌ ERREUR : "video/mon_image.jpg" n'est pas un fichier vidéo supporté. Extensions autorisées : .mp4, .mkv, .avi, .mov, .webm
+4	Nombres différents	❌ ERREUR : video/ contient 5 fichiers, audio/ contient 3 fichiers. Les nombres doivent être identiques.
+5	Durées différentes	❌ ERREUR : Durées différentes pour la paire 3 : video/ep03.mp4 (23.456s) ≠ audio/ep03_EN.mp4 (24.123s). Les durées doivent être strictement identiques.
+6	Droits d'écriture	❌ ERREUR : Impossible de créer/écrire dans "produits_finaux/". Vérifie les permissions.
+Structure révisée du script
+text
+AudioSwap
+├── saisir_nom_base()              → demande le nom de base
+├── verifier_ffmpeg()              → vérifie ffmpeg/ffprobe
+├── verifier_dossiers_existent()   → vérifie video/ et audio/
+├── verifier_fichiers_valides()    → vérifie contenu et extensions
+├── verifier_nombres_egaux()       → compare les comptes
+├── verifier_toutes_durees()       → vérifie chaque paire
+├── verifier_droits_ecriture()     → vérifie produits_finaux/
+├── verifier_tout()                → orchestre toutes les vérifications
+├── lister_et_trier()              → liste et trie les fichiers
+├── remplacer_audio()              → fait le remplacement
+├── gerer_sortie()                 → gère le nom de sortie (suffixe si conflit)
+├── afficher_bilan()               → bilan final
+└── main()                         → orchestre tout
+Flux principal (version définitive)
+text
+1. Saisir le nom de base
+
+2. Lancer la vérification exhaustive :
+   a. FFmpeg et FFprobe disponibles ?
+   b. video/ et audio/ existent ?
+   c. Contiennent des fichiers vidéo valides ?
+   d. Même nombre de fichiers ?
+   e. Toutes les durées sont strictement identiques ?
+   f. Peut-on créer/écrire dans produits_finaux/ ?
+
+   → Si UNE SEULE vérification échoue :
+        Afficher l'erreur correspondante
+        S'arrêter immédiatement (exit)
+
+3. Afficher : "✅ Toutes les vérifications sont passées. N paires à traiter."
+
+4. Créer le dossier produits_finaux/
+
+5. Initialiser les compteurs : réussites = 0, échecs = 0
+
+6. Pour i de 0 à (N-1) :
+   a. video_file = liste_video[i]
+   b. audio_file = liste_audio[i]
+   c. Construire le nom de sortie : [nom_base]_[i+1 sur 2 chiffres].mp4
+   d. Si le fichier existe déjà → ajouter un suffixe (_1, _2, ...)
+   e. Lancer le remplacement audio
+   f. Si succès → réussites++
+   g. Si échec → signaler l'erreur, échecs++
+
+7. Afficher le bilan final
+Points à noter
+Les durées sont vérifiées AVANT tout traitement → aucune surprise
+
+La vérification des durées est STRICTE → 0 tolérance
+
+Le script ne fait aucun traitement si une condition n'est pas remplie → zéro risque de corruption
+
+La création du dossier produits_finaux/ n'a lieu qu'après toutes les vérifications → pas de dossier vide inutile
+
+Ce qui change pour toi
+Plus de traitement conditionnel en cours de route → soit tout est OK, soit rien
+
+Les durées sont vérifiées en lot au début → tu dois les stocker dans une liste pour les comparer
+
+Le script est plus exigeant → mais aussi plus fiable
+
+Questions techniques (à toi de réfléchir)
+Comment stocker les durées de toutes les paires pour les vérifier avant de commencer ?
+
+Une liste de tuples (video_file, audio_file, duree_video, duree_audio) ?
+
+Que faire si une des vidéos a une durée qui ne peut pas être lue (fichier corrompu) ?
+
+La vérification échoue → message "impossible de lire la durée" → arrêt
+
+Le tri alphabétique est-il vraiment suffisant pour l'appariement ?
+
+Si video/ a : ep01.mp4, ep10.mp4, ep02.mp4
+
+Et audio/ a : ep01_EN.mp4, ep02_EN.mp4, ep10_EN.mp4
+
+Le tri alphabétique donne : ep01.mp4 ↔ ep01_EN.mp4 ✅
+
+Mais si les noms sont différents ? (ex: v1.mp4 ↔ a1.mp4)
+
+Le tri alphabétique fonctionne encore si les noms suivent la même logique
+
+Bilan final
+Ta décision de "vérifier TOUT avant de commencer" simplifie énormément la logique du script :
+
+Pas de gestion d'exceptions complexes en cours de route
+
+Pas de risque de traitement partiel
+
+Une expérience utilisateur claire : soit ça marche, soit on te dit pourquoi
+
+La feuille de route est maintenant complète et définitive.
+
+Tu peux commencer à :
+
+Installer FFmpeg
+
+Préparer tes dossiers de test
+
+Écrire le script en suivant cette structure
+
+Si tu as besoin d'éclaircissements sur un point précis, je suis là. Mais souviens-toi : pas de code, juste des concepts et des conseils.
+
+Bonne construction d'AudioSwap ! 🚀
+
