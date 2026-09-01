@@ -1,6 +1,0 @@
-Pourquoi AGPL ?
-La licence AGPL a été choisie pour garantir que toute utilisation de ce script, y compris via un service en ligne, reste open source. Cela protège la liberté des utilisateurs tout en encourageant le partage des améliorations.
-
-Pourquoi les durées doivent-elles être strictement identiques ?
-La tolérance zéro garantit qu'il n'y a pas de désynchronisation audio/vidéo dans le fichier final. Si les durées diffèrent, les fichiers ne sont probablement pas les mêmes versions (montage différent, génériques, etc.).
-
