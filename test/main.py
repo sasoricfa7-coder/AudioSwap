@@ -64,7 +64,7 @@ def verification_contenu() :
     liste_audio = []
     for f in contenu_audio.iterdir() :
         if f.is_file() and f.suffix.lower() in EXTENSIONS_VIDEO :
-            liste_audio.append(f)
+            liste_audio.append(f.name)
         else :
             print("Le dossier audio contient des fichiers non supporter")
             print("Extension supporter ", EXTENSIONS_VIDEO)
@@ -78,31 +78,39 @@ def verification_contenu() :
     liste_video = []
     for f in contenu_video.iterdir() :
         if f.is_file() and f.suffix.lower() in EXTENSIONS_VIDEO :
-            liste_video.append(f)
+            liste_video.append(f.name)
         else :
             print("Le dossier video contient des fichiers non supporter")
             print("Extension supporter ", EXTENSIONS_VIDEO)
             arret()
-
+    liste_video = sorted(liste_video)
+    liste_audio = sorted(liste_audio)
+    
     if len(liste_video) != len(liste_audio) :
         print("Chaque dossier doivent avoir exactement le même nombre de fichier")
         print(f"Dossier audio : {len(liste_audio)} fichiers. or Dossier video : {len(liste_video)} fichiers")
         arret()
 
+    return liste_audio, liste_video
+
 def verification_preliminaire() :
     _FFmpeg()
-    print("\n")
     _FFprobe()
-    print("\n")
     verification_dossier()
-    print("\n")
-    verification_contenu()
-    print("\n")
+
+    return verification_contenu()
 
 def main() : # une petite règle : chaque fonction gère ses erreurs
     nom = nom_base_1()
-    verification_preliminaire()
+    liste_audio, liste_video =  verification_preliminaire()
 
+    print("AUDIO :")
+    for i in liste_audio :
+        print(i)
+
+    print("VIDEO :")
+    for i in liste_video :
+        print(i)
 
 
     print("Succès") # Pour le guider et savoir que tout a marcher
