@@ -6,6 +6,11 @@
 import subprocess as sub
 import sys
 from pathlib import Path
+import os
+
+_audio = "audio"
+_video = "video" # En utilisant de variables global adapter le script deviens facile
+EXTENSIONS_VIDEO = {'.mp4', '.mkv', '.avi', '.mov', '.webm'}
 
 def arret() :
     sys.exit(1)
@@ -52,35 +57,47 @@ def verification_contenu() :
     global EXTENSIONS_VIDEO, _audio, _video
 
     contenu_audio = Path(_audio)
+    if not any(contenu_audio.iterdir()) :
+        print("Dossier audio vide.")
+        arret()
+
     liste_audio = []
     for f in contenu_audio.iterdir() :
-        if f.is_file() and f.suffix_lower() in EXTENSIONS_VIDEO :
+        if f.is_file() and f.suffix.lower() in EXTENSIONS_VIDEO :
             liste_audio.append(f)
         else :
             print("Le dossier audio contient des fichiers non supporter")
             print("Extension supporter ", EXTENSIONS_VIDEO)
             arret()
 
-
-
-        
     contenu_video = Path(_video)
-    liste_video = [f for f in contenu_video.iterdir() if f.is_file() and f.suffix_lower() in EXTENSIONS_VIDEO else valide = False]
-    if valide != True :
-        
-        
+    if not any(contenu_video.iterdir()) :
+        print("Dossier video vide.")
         arret()
+
+    liste_video = []
+    for f in contenu_video.iterdir() :
+        if f.is_file() and f.suffix.lower() in EXTENSIONS_VIDEO :
+            liste_video.append(f)
+        else :
+            print("Le dossier video contient des fichiers non supporter")
+            print("Extension supporter ", EXTENSIONS_VIDEO)
+            arret()
 
     if len(liste_video) != len(liste_audio) :
         print("Chaque dossier doivent avoir exactement le même nombre de fichier")
-        print(f"Dossier audio : {len(liste_audio)} fichiers. or {len(liste_video)} fichiers")
+        print(f"Dossier audio : {len(liste_audio)} fichiers. or Dossier video : {len(liste_video)} fichiers")
         arret()
 
 def verification_preliminaire() :
     _FFmpeg()
+    print("\n")
     _FFprobe()
+    print("\n")
     verification_dossier()
+    print("\n")
     verification_contenu()
+    print("\n")
 
 def main() : # une petite règle : chaque fonction gère ses erreurs
     nom = nom_base_1()
@@ -91,7 +108,4 @@ def main() : # une petite règle : chaque fonction gère ses erreurs
     print("Succès") # Pour le guider et savoir que tout a marcher
 
 if __name__=="__main__" :
-    _audio = "audio/"
-    _video = "video/" # En utilisant de variables global adapter le script deviens facile
-    EXTENSIONS_VIDEO = {'.mp4', '.mkv', '.avi', '.mov', '.webm'}
     main()
