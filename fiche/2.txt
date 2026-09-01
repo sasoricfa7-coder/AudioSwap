@@ -1,0 +1,128 @@
+🚀 FICHE 2 – VÉRIFICATION DES DURÉES
+Maintenant que la base est solide, on va ajouter la vérification des durées.
+
+Objectif de la fiche
+Ajouter la capacité de :
+
+Récupérer la durée de chaque fichier vidéo avec ffprobe
+
+Comparer les durées des paires (strictement égales)
+
+S'arrêter si une paire a des durées différentes
+
+Toujours pas de traitement vidéo – juste la vérification.
+
+Détails techniques
+1. Récupération de la durée
+Utiliser ffprobe pour obtenir la durée en secondes :
+
+bash
+ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 fichier.mp4
+La sortie est un nombre (ex: 123.456). Il faut le convertir en float.
+
+Gestion d'erreur : Si ffprobe échoue (fichier corrompu), tu dois capturer l'erreur et arrêter le script.
+
+2. Stockage des durées
+Tu vas avoir besoin de stocker les durées de chaque fichier pour les comparer.
+
+Structure suggérée :
+
+python
+# Liste de tuples : (fichier_video, fichier_audio, duree_video, duree_audio)
+paires = [
+    ("ep01.mp4", "ep01_EN.mp4", 123.456, 123.456),
+    ("ep02.mp4", "ep02_EN.mp4", 124.789, 124.789),
+]
+3. Comparaison stricte
+Comparer les durées avec une tolérance zéro :
+
+python
+if duree_video != duree_audio:
+    # Erreur
+Piège : Les durées sont des float. La comparaison stricte peut échouer à cause des erreurs d'arrondi. Pour garantir une comparaison stricte, tu peux soit :
+
+Comparer avec une très petite tolérance (ex: 0.001s) – mais tu as dit 0 tolérance
+
+Comparer les chaînes de caractères exactes (ce que renvoie ffprobe)
+
+Utiliser round() pour arrondir à 3 décimales
+
+À toi de décider : Comment gères-tu le cas où deux durées sont identiques à 0.0001s près ?
+
+4. Nouvelle fonction
+Ajouter une nouvelle fonction verifier_durees() qui :
+
+Parcourt toutes les paires
+
+Récupère les durées avec ffprobe
+
+Les compare
+
+Si une différence est trouvée → erreur avec les noms de fichiers et les durées
+
+Modifications du squelette
+Ajouter ces fonctions :
+
+python
+def obtenir_duree(fichier):
+    """Retourne la durée d'un fichier vidéo en secondes (float)."""
+    pass
+
+def verifier_durees(liste_video, liste_audio):
+    """Vérifie que toutes les paires ont des durées strictement identiques."""
+    pass
+Modifier verifier_tout() pour appeler verifier_durees().
+
+Ce que je veux que tu me ramènes
+Le script complet de la Fiche 2 (audioswap.py)
+
+Les tests que tu as faits :
+
+Paire avec durées identiques ✅
+
+Paire avec durées différentes ❌
+
+Fichier corrompu ❌
+
+Mix de durées (certaines OK, d'autres non) ❌
+
+Une note sur :
+
+Comment tu as géré la précision des durées
+
+Comment tu as géré les erreurs de ffprobe
+
+Exemple de sortie attendue
+Cas OK :
+
+text
+✅ Toutes les vérifications sont passées.
+    - FFmpeg : OK
+    - FFprobe : OK
+    - Dossiers : OK
+    - Fichiers vidéo : video/ (3), audio/ (3)
+    - Nombres : OK
+    - Durées : Toutes les paires sont identiques ✅
+
+Prêt à traiter 3 paires.
+Cas d'erreur (durée différente) :
+
+text
+❌ ERREUR : Durées différentes pour la paire 2 :
+    - video/ep02.mp4 : 123.456s
+    - audio/ep02_EN.mp4 : 124.789s
+Les durées doivent être strictement identiques.
+Cas d'erreur (fichier corrompu) :
+
+text
+❌ ERREUR : Impossible de lire la durée de "video/ep03.mp4".
+Le fichier est peut-être corrompu.
+Règles à respecter
+Pas de traitement vidéo – toujours juste des vérifications
+
+Gestion d'erreur – si ffprobe échoue, arrêt immédiat
+
+Affichage clair – montrer les durées en cas d'erreur
+
+Performance – ne pas lancer ffprobe deux fois pour le même fichier
+
